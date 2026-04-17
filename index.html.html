@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Harbus</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--ink:#111;--mid:#5a5a5a;--light:#999;--xl:#bbb;--rule:#ddd;--bg:#fff;--cr:#7a0000}
+body{font-family:'EB Garamond',Georgia,serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased}
+a{text-decoration:none;color:inherit;cursor:pointer}
+.page{display:none}.page.active{display:block}
+
+/* SHARED HEADER COMPONENTS */
+.top-strip{border-bottom:1px solid var(--rule);padding:5px 20px;display:flex;justify-content:space-between;align-items:center;max-width:1160px;margin:0 auto}
+.ts-left{font-family:'Inter',sans-serif;font-size:10.5px;color:var(--light);display:flex;gap:14px;align-items:center}
+.ts-right{display:flex;gap:14px;align-items:center}
+.ts-right a,.ts-left a{font-family:'Inter',sans-serif;font-size:10.5px;color:var(--light);transition:color .12s}
+.ts-right a:hover,.ts-left a:hover{color:var(--ink)}
+.ts-right .donate-lnk{color:var(--cr);font-weight:500}
+
+.masthead{text-align:center;padding:20px 20px 14px;border-bottom:2px solid var(--ink)}
+.mast-inner{display:flex;align-items:center;justify-content:center;gap:18px}
+.mast-seal{height:60px;width:auto;flex-shrink:0}
+.mast-wordmark{font-family:'Cormorant Garamond',serif;font-size:clamp(46px,7vw,80px);font-weight:600;letter-spacing:-.04em;line-height:1;display:block}
+.mast-sub{font-family:'Inter',sans-serif;font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--light);margin-top:5px;font-weight:300}
+
+nav{border-bottom:1px solid var(--rule);background:#fff;position:sticky;top:0;z-index:200}
+.nav-inner{display:flex;justify-content:center;overflow-x:auto;scrollbar-width:none;max-width:1160px;margin:0 auto}
+.nav-inner::-webkit-scrollbar{display:none}
+.nav-inner a{font-family:'Inter',sans-serif;font-size:11px;font-weight:400;letter-spacing:.08em;text-transform:uppercase;color:var(--mid);padding:11px 14px;white-space:nowrap;border-bottom:2px solid transparent;transition:color .12s,border-color .12s;flex-shrink:0}
+.nav-inner a:hover,.nav-inner a.active{color:var(--ink);border-bottom-color:var(--ink)}
+
+.admin-bar{background:var(--cr);color:#fff;font-family:'Inter',sans-serif;font-size:11px;padding:5px 20px;display:none;justify-content:space-between;align-items:center}
+.admin-bar.on{display:flex}
+.admin-bar button{background:rgba(255,255,255,.18);border:none;color:#fff;font-family:'Inter',sans-serif;font-size:10.5px;padding:3px 10px;cursor:pointer}
+.admin-bar button:hover{background:rgba(255,255,255,.3)}
+
+.wrap{max-width:1160px;margin:0 auto;padding:28px 20px}
+
+/* ── HOME LAYOUT ── */
+/* NEW HERO: image centered top, left=desc+2arts, right=popular */
+.hero-block{display:grid;grid-template-columns:1fr 1px 220px;gap:0;padding-bottom:24px;margin-bottom:24px;border-bottom:1px solid var(--rule)}
+.hero-left{padding-right:24px}
+.hero-img-wrap{margin-bottom:14px}
+.hero-img-wrap img{width:100%;aspect-ratio:16/9;object-fit:cover;display:block}
+.hero-desc{margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid var(--rule)}
+.v-rule{background:var(--rule)}
+.hero-right{padding-left:20px}
+.pop-label{font-family:'Inter',sans-serif;font-size:9.5px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--light);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--rule)}
+.pop-item{padding:10px 0;border-bottom:1px solid var(--rule)}
+.pop-item:last-child{border-bottom:none}
+.pop-num{font-family:'Inter',sans-serif;font-size:11px;color:var(--xl);font-weight:300;margin-bottom:3px}
+
+/* secondary arts below hero image */
+.secondary-arts{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.sec-art{padding-top:14px;border-top:1px solid var(--rule)}
+
+/* GRID */
+.sec-label{font-family:'Inter',sans-serif;font-size:10px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;padding-bottom:9px;border-bottom:1px solid var(--ink);margin-bottom:18px;color:var(--ink)}
+.art-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:22px 18px;margin-bottom:40px}
+.card img{width:100%;aspect-ratio:3/2;object-fit:cover;display:block;margin-bottom:8px}
+.card{cursor:pointer}
+.empty-st{grid-column:1/-1;text-align:center;padding:48px;font-family:'Inter',sans-serif;font-size:12px;color:var(--light)}
+
+/* TYPOGRAPHY */
+.sec-tag{font-family:'Inter',sans-serif;font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--light);margin-bottom:4px}
+.h-hero{font-family:'Cormorant Garamond',serif;font-size:clamp(20px,2.4vw,32px);font-weight:600;line-height:1.12;letter-spacing:-.02em;margin-bottom:8px;cursor:pointer}
+.h-hero:hover,.h-side:hover,.h-card:hover,.h-pop:hover{text-decoration:underline;text-underline-offset:2px;text-decoration-thickness:1px}
+.blurb-lg{font-family:'EB Garamond',serif;font-size:15px;line-height:1.6;color:var(--mid);margin-bottom:7px}
+.h-side{font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:600;line-height:1.18;letter-spacing:-.01em;margin-bottom:4px;cursor:pointer}
+.blurb-sm{font-family:'EB Garamond',serif;font-size:13px;line-height:1.5;color:var(--mid)}
+.byline{font-family:'Inter',sans-serif;font-size:10px;color:var(--xl);margin-top:4px;font-weight:300}
+.h-card{font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:600;line-height:1.2;letter-spacing:-.01em;margin-bottom:3px;cursor:pointer}
+.h-pop{font-family:'Cormorant Garamond',serif;font-size:15px;font-weight:600;line-height:1.2;letter-spacing:-.01em;cursor:pointer;margin-bottom:3px}
+
+/* ARTICLE VIEW */
+.art-view{display:none;max-width:660px;margin:0 auto}
+.art-view.on{display:block}
+.hp-view.off{display:none}
+.back-btn{font-family:'Inter',sans-serif;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--light);background:none;border:none;cursor:pointer;margin-bottom:20px;display:flex;align-items:center;gap:5px}
+.back-btn:hover{color:var(--ink)}
+.av-title{font-family:'Cormorant Garamond',serif;font-size:clamp(26px,4vw,42px);font-weight:600;line-height:1.1;letter-spacing:-.025em;margin-bottom:12px}
+.av-blurb{font-family:'EB Garamond',serif;font-size:19px;color:var(--mid);line-height:1.5;margin-bottom:14px;border-bottom:1px solid var(--rule);padding-bottom:14px}
+.av-byline{font-family:'Inter',sans-serif;font-size:11px;color:var(--xl);margin-bottom:20px;font-weight:300}
+.av-img{width:100%;aspect-ratio:16/9;object-fit:cover;display:block;margin-bottom:6px}
+.av-cap{font-family:'Inter',sans-serif;font-size:10.5px;color:var(--xl);margin-bottom:24px}
+.av-body{font-family:'EB Garamond',serif;font-size:19px;line-height:1.8}
+.av-body p{margin-bottom:1.25em}
+
+/* ABOUT PAGE */
+.about-wrap{max-width:780px;margin:0 auto;padding:40px 20px}
+.about-wrap h1{font-family:'Cormorant Garamond',serif;font-size:42px;font-weight:600;letter-spacing:-.03em;margin-bottom:28px;padding-bottom:16px;border-bottom:1px solid var(--rule)}
+.about-section{margin-bottom:32px}
+.about-section h2{font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:600;letter-spacing:-.02em;margin-bottom:12px}
+.about-section p,.about-section li{font-family:'EB Garamond',serif;font-size:17px;line-height:1.7;color:var(--mid);margin-bottom:8px}
+.about-section ul{padding-left:20px}
+.team-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:24px;margin-top:16px}
+.team-card{border-top:1px solid var(--rule);padding-top:14px}
+.team-card .role{font-family:'Inter',sans-serif;font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--light);margin-bottom:6px}
+.team-card .name{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:600;letter-spacing:-.01em;margin-bottom:6px}
+.team-card .bio{font-family:'EB Garamond',serif;font-size:13.5px;line-height:1.6;color:var(--mid)}
+
+/* ARCHIVE PAGE */
+.archive-wrap{max-width:900px;margin:0 auto;padding:40px 20px}
+.archive-wrap h1{font-family:'Cormorant Garamond',serif;font-size:42px;font-weight:600;letter-spacing:-.03em;margin-bottom:8px}
+.archive-sub{font-family:'Inter',sans-serif;font-size:11px;color:var(--light);letter-spacing:.06em;margin-bottom:28px;padding-bottom:18px;border-bottom:1px solid var(--rule)}
+.decade-group{margin-bottom:28px}
+.decade-label{font-family:'Inter',sans-serif;font-size:10px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--ink);padding-bottom:8px;border-bottom:1px solid var(--rule);margin-bottom:14px}
+.archive-row{display:flex;justify-content:space-between;align-items:baseline;padding:9px 0;border-bottom:1px solid var(--rule)}
+.archive-row:last-child{border-bottom:none}
+.archive-title{font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:400;cursor:pointer;flex:1}
+.archive-title:hover{text-decoration:underline;text-underline-offset:2px}
+.archive-meta{font-family:'Inter',sans-serif;font-size:10px;color:var(--light);text-align:right;margin-left:16px;white-space:nowrap}
+.archive-search{width:100%;padding:9px 12px;border:1px solid var(--rule);font-family:'Inter',sans-serif;font-size:13px;outline:none;margin-bottom:22px}
+.archive-search:focus{border-color:var(--ink)}
+
+/* ADMISSIONS PAGE */
+.adm-wrap{max-width:860px;margin:0 auto;padding:40px 20px}
+.adm-wrap h1{font-family:'Cormorant Garamond',serif;font-size:38px;font-weight:600;letter-spacing:-.03em;margin-bottom:8px}
+.adm-intro{font-family:'EB Garamond',serif;font-size:17px;color:var(--mid);line-height:1.6;margin-bottom:28px;padding-bottom:18px;border-bottom:1px solid var(--rule)}
+.adm-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:22px 18px}
+
+/* DONATE PAGE */
+.donate-wrap{max-width:560px;margin:60px auto;padding:0 20px;text-align:center}
+.donate-wrap h1{font-family:'Cormorant Garamond',serif;font-size:40px;font-weight:600;letter-spacing:-.03em;margin-bottom:14px}
+.donate-wrap p{font-family:'EB Garamond',serif;font-size:17px;line-height:1.7;color:var(--mid);margin-bottom:28px}
+.donate-btn{display:inline-block;background:var(--cr);color:#fff;font-family:'Inter',sans-serif;font-size:11px;letter-spacing:.1em;text-transform:uppercase;font-weight:500;padding:13px 34px;cursor:pointer;border:none;transition:background .12s}
+.donate-btn:hover{background:#900}
+
+/* MODALS */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:500;align-items:center;justify-content:center}
+.overlay.on{display:flex}
+.modal-box{background:#fff;border:1px solid var(--rule);padding:34px 28px;width:min(400px,92vw);position:relative}
+.modal-box h2{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:600;letter-spacing:-.02em;margin-bottom:4px}
+.modal-box .sub{font-family:'Inter',sans-serif;font-size:11px;color:var(--light);margin-bottom:22px}
+.close-x{position:absolute;top:12px;right:16px;background:none;border:none;font-size:20px;cursor:pointer;color:var(--light);line-height:1}
+.field{margin-bottom:14px}
+.field label{display:block;font-family:'Inter',sans-serif;font-size:10px;letter-spacing:.1em;text-transform:uppercase;font-weight:500;color:var(--mid);margin-bottom:5px}
+.field input,.field select,.field textarea{width:100%;padding:8px 10px;border:1px solid var(--rule);font-family:'Inter',sans-serif;font-size:13px;color:var(--ink);outline:none;background:#fff;transition:border-color .12s}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--ink)}
+.field textarea{resize:vertical;min-height:75px;font-size:12.5px}
+.field .hint{font-family:'Inter',sans-serif;font-size:10px;color:var(--xl);margin-top:3px}
+.btn-dark{width:100%;padding:10px;background:var(--ink);color:#fff;border:none;font-family:'Inter',sans-serif;font-size:11px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;margin-top:4px}
+.btn-dark:hover{background:#333}
+.btn-ghost{width:100%;padding:10px;background:#fff;color:var(--mid);border:1px solid var(--rule);font-family:'Inter',sans-serif;font-size:11px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;margin-top:6px}
+.btn-ghost:hover{border-color:var(--ink);color:var(--ink)}
+.err-msg{font-family:'Inter',sans-serif;font-size:11px;color:var(--cr);margin-top:6px;display:none}
+
+.up-modal{background:#fff;border:1px solid var(--rule);padding:28px 26px;width:min(640px,95vw);max-height:88vh;overflow-y:auto;position:relative}
+.up-modal h2{font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:600;letter-spacing:-.02em;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--rule)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.gdoc-note{background:#fafafa;border-left:2px solid var(--rule);padding:10px 12px;font-family:'Inter',sans-serif;font-size:11px;color:var(--mid);margin-bottom:14px;line-height:1.6}
+.pull-btn{background:#fff;border:1px solid var(--ink);color:var(--ink);padding:7px 14px;font-family:'Inter',sans-serif;font-size:10.5px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;margin-bottom:16px}
+.pull-btn:disabled{opacity:.35;cursor:not-allowed}
+.feat-row{display:flex;gap:6px;margin-top:4px}
+.feat-btn{flex:1;padding:6px 4px;border:1px solid var(--rule);background:#fff;font-family:'Inter',sans-serif;font-size:10px;letter-spacing:.07em;text-transform:uppercase;cursor:pointer;color:var(--mid)}
+.feat-btn.sel{border-color:var(--ink);background:var(--ink);color:#fff}
+.st-msg{font-family:'Inter',sans-serif;font-size:11px;padding:8px 12px;margin-bottom:12px;display:none}
+.st-msg.ok{background:#f0fdf4;color:#166534;border-left:2px solid #16a34a;display:block}
+.st-msg.bad{background:#fef2f2;color:#991b1b;border-left:2px solid #dc2626;display:block}
+.meta-sec{display:none}
+
+footer{border-top:1px solid var(--rule);padding:24px 20px;margin-top:20px;text-align:center}
+footer img{height:30px;margin:0 auto 8px;display:block;opacity:.45}
+footer p{font-family:'Inter',sans-serif;font-size:10.5px;color:var(--xl);font-weight:300}
+
+@media(max-width:700px){
+  .hero-block{grid-template-columns:1fr}
+  .v-rule{display:none}
+  .hero-left{padding-right:0}
+  .hero-right{padding-left:0;margin-top:20px;border-top:1px solid var(--rule)}
+  .secondary-arts{grid-template-columns:1fr}
+  .form-row{grid-template-columns:1fr}
+  .mast-inner{flex-direction:column;gap:10px}
+}
+</style>
+</head>
+<body>
+
+<div class="admin-bar" id="adminBar">
+  <span style="letter-spacing:.04em">Staff mode</span>
+  <div style="display:flex;gap:8px">
+    <button onclick="openUpload()">+ Upload Article</button>
+    <button onclick="doLogout()">Log out</button>
+  </div>
+</div>
+
+<!-- ══════════ HOME ══════════ -->
+<div class="page active" id="pg-home">
+  <div style="border-bottom:1px solid var(--rule)">
+    <div class="top-strip">
+      <div class="ts-left" id="dateDisp"></div>
+      <div class="ts-right">
+        <a onclick="showPage('pg-donate')" class="donate-lnk">Donate</a>
+        <a onclick="showPage('pg-about')">About</a>
+        <a onclick="showPage('pg-archive')">Archive</a>
+        <a id="loginToggle" onclick="openLogin()">Staff login</a>
+      </div>
+    </div>
+  </div>
+  <div class="masthead">
+    <div class="mast-inner">
+      <img class="mast-seal" src="https://static.wixstatic.com/media/9e8675_ad8afa61bd284c26aa7a66d824076d2f~mv2.png" alt="Harbus seal" onerror="this.style.display='none'">
+      <div>
+        <span class="mast-wordmark">The Harbus</span>
+        <div class="mast-sub">The Independent Newspaper of Harvard Business School since 1937</div>
+      </div>
+    </div>
+  </div>
+  <nav>
+    <div class="nav-inner" id="navInner">
+      <a class="active" onclick="filterSec('all',this)">All</a>
+      <a onclick="filterSec('Business',this)">Business</a>
+      <a onclick="filterSec('Tech',this)">Tech</a>
+      <a onclick="filterSec('Culture',this)">Culture</a>
+      <a onclick="filterSec('Community',this)">Community</a>
+      <a onclick="filterSec('Politics',this)">Politics</a>
+      <a onclick="filterSec('Humor',this)">Humor</a>
+      <a onclick="filterSec('Admissions',this)">Admissions</a>
+    </div>
+  </nav>
+
+  <div class="wrap">
+    <div class="art-view" id="artView">
+      <button class="back-btn" onclick="closeArt()">← Back</button>
+      <div class="sec-tag" id="av-sec"></div>
+      <div class="av-title" id="av-title"></div>
+      <div class="av-blurb" id="av-blurb"></div>
+      <div class="av-byline" id="av-byline"></div>
+      <img class="av-img" id="av-img" src="" alt="">
+      <div class="av-cap" id="av-cap"></div>
+      <div class="av-body" id="av-body"></div>
+    </div>
+
+    <div class="hp-view" id="hpView">
+      <!-- HERO BLOCK -->
+      <div class="hero-block" id="heroBlock">
+        <div class="hero-left" id="heroLeft">
+          <div class="empty-st" style="padding:60px 0;grid-column:1/-1">No hero article yet.<br>Log in as staff to upload.</div>
+        </div>
+        <div class="v-rule"></div>
+        <div class="hero-right" id="heroRight">
+          <div class="pop-label">Popular</div>
+          <div id="popList"><div style="font-family:'Inter',sans-serif;font-size:11px;color:var(--xl)">Articles will appear here</div></div>
+        </div>
+      </div>
+      <div class="sec-label" id="gridLabel">Latest</div>
+      <div class="art-grid" id="artGrid"></div>
+    </div>
+  </div>
+
+  <footer>
+    <img src="https://static.wixstatic.com/media/9e8675_ad8afa61bd284c26aa7a66d824076d2f~mv2.png" alt="" onerror="this.style.display='none'">
+    <p>© The Harbus News Corporation · Harvard Business School · Est. 1937</p>
+  </footer>
+</div>
+
+<!-- ══════════ ADMISSIONS ══════════ -->
+<div class="page" id="pg-admissions">
+  <div style="border-bottom:1px solid var(--rule)">
+    <div class="top-strip">
+      <div class="ts-left"><a onclick="showPage('pg-home')">← The Harbus</a></div>
+      <div class="ts-right">
+        <a onclick="showPage('pg-donate')" class="donate-lnk">Donate</a>
+        <a onclick="showPage('pg-about')">About</a>
+        <a onclick="showPage('pg-archive')">Archive</a>
+      </div>
+    </div>
+  </div>
+  <div class="masthead">
+    <div class="mast-inner">
+      <img class="mast-seal" src="https://static.wixstatic.com/media/9e8675_ad8afa61bd284c26aa7a66d824076d2f~mv2.png" alt="" onerror="this.style.display='none'">
+      <div>
+        <span class="mast-wordmark">The Harbus</span>
+        <div class="mast-sub">The Independent Newspaper of Harvard Business School since 1937</div>
+      </div>
+    </div>
+  </div>
+  <div class="adm-wrap">
+    <h1>Admissions</h1>
+    <div class="adm-intro">Guides, perspectives, and essays from the HBS community on the admissions process — written by students who have been through it.</div>
+    <div class="art-grid" id="admGrid">
+      <div class="empty-st">No admissions articles yet. Upload articles tagged "Admissions" to populate this page.</div>
+    </div>
+  </div>
+  <footer>
+    <img src="https://static.wixstatic.com/media/9e8675_ad8afa61bd284c26aa7a66d824076d2f~mv2.png" alt="" onerror="this.style.display='none'">
+    <p>© The Harbus News Corporation · Harvard Business School · Est. 1937</p>
+  </footer>
+</div>
+
+<!-- ══════════ ABOUT ══════════ -->
+<div class="page" id="pg-about">
+  <div style="border-bottom:1px solid var(--rule)">
+    <div class="top-strip">
+      <div class="ts-left"><a onclick="showPage('pg-home')">← The Harbus</a></div>
+      <div class="ts-right">
+        <a onclick="showPage('pg-donate')" class="donate-lnk">Donate</a>
+        <a onclick="showPage('pg-archive')">Archive</a>
+      </div>
+    </div>
+  </div>
+  <div class="masthead">
+    <div class="mast-inner">
+      <img class="mast-seal" src="https://static.wixstatic.com/media/9e8675_ad8afa61bd284c26aa7a66d824076d2f~mv2.png" alt="" onerror="this.style.display='none'">
+      <div>
+        <span class="mast-wordmark">The Harbus</span>
+        <div class="mast-sub">The Independent Newspaper of Harvard Business School since 1937</div>
+      </div>
+    </div>
+  </div>
+  <div class="about-wrap">
+    <h1>About The Harbus</h1>
+    <div class="about-section">
+      <h2>Mission</h2>
+      <p>For over 85 years, The Harbus has served as Harvard Business School's student-run newspaper. Since our founding in 1937, we have strived to provide quality news that informs, educates, and provokes thought on campus.</p>
+    </div>
+    <div class="about-section">
+      <h2>Governance</h2>
+      <p>The Harbus News Corporation is an independent, self-funded nonprofit news organization run by students. We publish The Harbus, a publication that brings free news to the Harvard community available both in print and online. Historically, The Harbus has funded The Harbus Foundation, which provides grant awards and consulting services to organizations promoting education, literacy, and journalism across the Boston metropolitan area.</p>
+      <p style="margin-top:12px">The Harbus News Corporation's publications include:</p>
+      <ul style="margin-top:8px">
+        <li>The Harbus print newspaper</li>
+        <li>The Unofficial HBS Admissions &amp; Interview Guide</li>
+        <li><em>65 Successful HBS Application Essays</em></li>
+        <li>Recruiting Guide for first-year students</li>
+        <li>Elective Curriculum Course Selection Guide for second-year students</li>
+      </ul>
+    </div>
+    <div class="about-section">
+      <h2>Team</h2>
+      <div class="team-grid">
+        <div class="team-card">
+          <div class="role">Editor-in-Chief</div>
+          <div class="name">Alex Qi</div>
+          <div class="bio">Alex Qi (MBA '27) is from Irvine, California. He studied philosophy, politics, and physics at New York University. Prior to HBS, he worked in corporate strategy and M&amp;A at Northrop Grumman.</div>
+        </div>
+        <div class="team-card">
+          <div class="role">Chief Executive Officer</div>
+          <div class="name">Pranav Bharadwaj</div>
+          <div class="bio">Pranav Bharadwaj (MBA '27) is from London, UK. He studied Economics &amp; Management at Oxford. Previously Head of Strategy &amp; Operations at Cera, a European health tech company.</div>
+        </div>
+        <div class="team-card">
+          <div class="role">Editor-in-Chief Emeritus</div>
+          <div class="name">Michelle Yu</div>
+          <div class="bio">Michelle Yu (MBA '26) is from Cresskill, New Jersey. She worked for CNBC, NBC News, and CNN prior to HBS, with projects for HBO, Showtime, and Oxygen.</div>
+        </div>
+        <div class="team-card">
+          <div class="role">Editor, Entrepreneurship</div>
+          <div class="name">Katerina Gan</div>
+          <div class="bio">Katerina Gan (MBA '27) is from Riverside, California. She graduated from the University of Chicago and worked at Linden Capital Partners, a healthcare private equity firm.</div>
+        </div>
+      </div>
+    </div>
+    <div class="about-section" style="margin-top:32px;padding-top:24px;border-top:1px solid var(--rule)">
+      <p style="font-family:'Inter',sans-serif;font-size:11px;color:var(--light)">For advertising inquiries, contact <span style="color:var(--ink)">advertise@harbus.org</span> · For editorial, contact <span style="color:var(--ink)">editor@harbus.org</span></p>
+    </div>
+  </div>
+  <footer>
+    <img src="https://static.wixstatic.com/media/9e8675_ad8afa61bd284c26aa7a66d824076d2f~mv2.png" alt="" onerror="this.style.display='none'">
+    <p>© The Harbus News Corporation · Harvard Business School · Est. 1937</p>
+  </footer>
+</div>
+
+<!-- ══════════ ARCHIVE ══════════ -->
+<div class="page" id="pg-archive">
+  <div style="border-bottom:1px solid var(--rule)">
+    <div class="top-strip">
+      <div class="ts-left"><a onclick="showPage('pg-home')">← The Harbus</a></div>
+      <div class="ts-right">
+        <a onclick="showPage('pg-donate')" class="donate-lnk">Donate</a>
+        <a onclick="showPage('pg-about')">About</a>
+      </div>
+    </div>
+  </div>
+  <div class="masthead">
+    <div class="mast-inner">
+      <img class="mast-seal" src="https://static.wixstatic.com/media/9e8675_ad8afa61bd284c26aa7a66d824076d2f~mv2.png" alt="" onerror="this.style.display='none'">
+      <div>
+        <span class="mast-wordmark">The Harbus</span>
+        <div class="mast-sub">The Independent Newspaper of Harvard Business School since 1937</div>
+      </div>
+    </div>
+  </div>
+  <div class="archive-wrap">
+    <h1>Archive</h1>
+    <div class="archive-sub">Articles published in The Harbus since 1937 · Harvard Business School</div>
+    <input class="archive-search" type="text" placeholder="Search archive…" oninput="filterArchive(this.value)" id="archSearch">
+    <div id="archiveList"></div>
+  </div>
+  <footer>
+    <img src="https://static.wixstatic.com/media/9e8675_ad8afa61bd284c26aa7a66d824076d2f~mv2.png" alt="" onerror="this.style.display='none'">
+    <p>© The Harbus News Corporation · Harvard Business School · Est. 1937</p>
+  </footer>
+</div>
+
+<!-- ══════════ DONATE ══════════ -->
+<div class="page" id="pg-donate">
+  <div style="border-bottom:1px solid var(--rule)">
+    <div class="top-strip">
+      <div class="ts-left"><a onclick="showPage('pg-home')">← The Harbus</a></div>
+      <div class="ts-right">
+        <a onclick="showPage('pg-about')">About</a>
+        <a onclick="showPage('pg-archive')">Archive</a>
+      </div>
+    </div>
+  </div>
+  <div class="masthead">
+    <div class="mast-inner">
+      <img class="mast-seal" src="https://static.wixstatic.com/media/9e8675_ad8afa61bd284c26aa7a66d824076d2f~mv2.png" alt="" onerror="this.style.display='none'">
+      <div>
+        <span class="mast-wordmark">The Harbus</span>
+        <div class="mast-sub">The Independent Newspaper of Harvard Business School since 1937</div>
+      </div>
+    </div>
+  </div>
+  <div class="donate-wrap">
+    <h1>Support Independent Journalism</h1>
+    <p>The Harbus has been the independent voice of Harvard Business School since 1937. Your contribution helps fund student journalism, print editions, and our digital archive.</p>
+    <button class="donate-btn" onclick="alert('Donation portal — replace this with your payment link.')">Donate to The Harbus</button>
+    <div style="font-family:'Inter',sans-serif;font-size:10.5px;color:var(--xl);margin-top:14px">The Harbus News Corporation is a nonprofit student organization.</div>
+  </div>
+  <footer>
+    <img src="https://static.wixstatic.com/media/9e8675_ad8afa61bd284c26aa7a66d824076d2f~mv2.png" alt="" onerror="this.style.display='none'">
+    <p>© The Harbus News Corporation · Harvard Business School · Est. 1937</p>
+  </footer>
+</div>
+
+<!-- LOGIN OVERLAY -->
+<div class="overlay" id="loginOv" onclick="ovClick(event,'loginOv')">
+  <div class="modal-box">
+    <button class="close-x" onclick="closeLogin()">×</button>
+    <h2>Staff Login</h2>
+    <div class="sub">Restricted to Harbus editorial staff</div>
+    <div class="field"><label>Username</label><input type="text" id="lu" placeholder="editor"></div>
+    <div class="field"><label>Password</label><input type="password" id="lp" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"></div>
+    <div class="err-msg" id="lErr">Incorrect credentials.</div>
+    <button class="btn-dark" onclick="doLogin()">Sign in</button>
+    <button class="btn-ghost" onclick="closeLogin()">Cancel</button>
+  </div>
+</div>
+
+<!-- UPLOAD OVERLAY -->
+<div class="overlay" id="upOv" onclick="ovClick(event,'upOv')">
+  <div class="up-modal">
+    <button class="close-x" onclick="closeUpload()">×</button>
+    <h2>Upload Article</h2>
+    <div class="gdoc-note">Paste a Google Doc share link and click Pull. Set sharing to <strong>"Anyone with the link can view."</strong></div>
+    <div class="st-msg" id="upSt"></div>
+    <div class="field"><label>Google Doc Link</label><input type="url" id="gdUrl" placeholder="https://docs.google.com/document/d/…"></div>
+    <button class="pull-btn" id="pullBtn" onclick="fetchDoc()">Pull from Google Doc</button>
+    <div class="meta-sec" id="metaSec">
+      <div class="form-row">
+        <div class="field"><label>Title *</label><input type="text" id="uT"></div>
+        <div class="field"><label>Section *</label>
+          <select id="uS">
+            <option value="">Select…</option>
+            <option>Business</option><option>Tech</option><option>Culture</option>
+            <option>Community</option><option>Politics</option><option>Humor</option><option>Admissions</option>
+          </select>
+        </div>
+      </div>
+      <div class="field"><label>Blurb / Dek *</label><textarea id="uB" rows="2"></textarea></div>
+      <div class="form-row">
+        <div class="field"><label>Author Name *</label><input type="text" id="uA"></div>
+        <div class="field"><label>Year / Title</label><input type="text" id="uAt" placeholder="MBA '26"></div>
+      </div>
+      <div class="field">
+        <label>Image URL</label>
+        <input type="url" id="uI" placeholder="https://…">
+        <div class="hint">Google Drive → Share → Copy link, or any direct image URL</div>
+      </div>
+      <div class="field"><label>Image Caption</label><input type="text" id="uC"></div>
+      <div class="field">
+        <label>Feature Placement</label>
+        <div class="feat-row">
+          <button class="feat-btn sel" id="fp-none" onclick="setFeat('none')">Grid only</button>
+          <button class="feat-btn" id="fp-hero" onclick="setFeat('hero')">Hero</button>
+          <button class="feat-btn" id="fp-side" onclick="setFeat('side')">Secondary</button>
+        </div>
+        <div class="hint">Hero = main article with large image. Secondary = smaller articles below hero image (max 2).</div>
+      </div>
+      <div class="field"><label>Article Body</label><textarea id="uBody" rows="5"></textarea></div>
+      <button class="btn-dark" onclick="publish()" style="margin-top:6px">Publish Article</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const UNAME='harbus',UPASS='hbs2025';
+let arts=JSON.parse(localStorage.getItem('harbus_v4')||'[]');
+let feat='none',curSec='all',loggedIn=false;
+
+// Boot
+document.getElementById('dateDisp').textContent=
+  new Date().toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+renderAll();
+renderArchive('');
+renderAdmissions();
+
+// ── PAGE ROUTING ──
+function showPage(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+  if(id==='pg-admissions') renderAdmissions();
+}
+
+// ── RENDER ──
+function renderAll(){renderHero();renderGrid(curSec);}
+
+function renderHero(){
+  const hero=arts.find(a=>a.feat==='hero');
+  const secs=arts.filter(a=>a.feat==='side').slice(0,2);
+  // popular = last 5 non-hero articles by recency
+  const pop=arts.filter(a=>a.feat!=='hero').slice(0,5);
+  const hl=document.getElementById('heroLeft');
+
+  if(hero){
+    const secArts=secs.length?`
+      <div class="secondary-arts">
+        ${secs.map(a=>`
+          <div class="sec-art">
+            <div class="sec-tag">${x(a.section)}</div>
+            <div class="h-side" onclick="openArt(${a.id})">${x(a.title)}</div>
+            <div class="blurb-sm">${x(a.blurb)}</div>
+            <div class="byline">By ${x(a.author)} · ${fd(a.date)}</div>
+          </div>`).join('')}
+      </div>`:'';
+    hl.innerHTML=`
+      <div class="hero-img-wrap">
+        ${hero.img?`<img src="${hero.img}" alt="${x(hero.title)}" onerror="this.style.display='none'">`:''}
+      </div>
+      <div class="hero-desc">
+        <div class="sec-tag">${x(hero.section)}</div>
+        <div class="h-hero" onclick="openArt(${hero.id})">${x(hero.title)}</div>
+        <div class="blurb-lg">${x(hero.blurb)}</div>
+        <div class="byline">By ${x(hero.author)}${hero.at?' · '+x(hero.at):''} · ${fd(hero.date)}</div>
+      </div>
+      ${secArts}`;
+  } else {
+    hl.innerHTML=`<div class="empty-st" style="padding:60px 0">No hero article yet.<br>${loggedIn?'Use Upload Article above.':'Log in as staff to upload.'}</div>`;
+  }
+
+  const pr=document.getElementById('popList');
+  if(pop.length){
+    pr.innerHTML=pop.map((a,i)=>`
+      <div class="pop-item">
+        <div class="pop-num">${i+1}</div>
+        <div class="sec-tag">${x(a.section)}</div>
+        <div class="h-pop" onclick="openArt(${a.id})">${x(a.title)}</div>
+        <div class="byline">By ${x(a.author)} · ${fd(a.date)}</div>
+      </div>`).join('');
+  } else {
+    pr.innerHTML=`<div style="font-family:'Inter',sans-serif;font-size:11px;color:var(--xl)">Articles will appear here</div>`;
+  }
+}
+
+function renderGrid(sec){
+  const g=document.getElementById('artGrid');
+  document.getElementById('gridLabel').textContent=sec==='all'?'Latest':sec;
+  let list=sec==='all'?[...arts]:arts.filter(a=>a.section===sec);
+  list.sort((a,b)=>b.id-a.id);
+  if(!list.length){g.innerHTML=`<div class="empty-st">No articles${sec!=='all'?' in '+sec:''} yet.</div>`;return;}
+  g.innerHTML=list.map(a=>`
+    <div class="card" onclick="openArt(${a.id})">
+      ${a.img?`<img src="${a.img}" alt="${x(a.title)}" onerror="this.style.display='none'">`:''}
+      <div class="h-card">${x(a.title)}</div>
+      <div class="sec-tag" style="margin-top:3px;margin-bottom:5px">${x(a.section)}</div>
+      <div class="blurb-sm">${x(a.blurb)}</div>
+      <div class="byline">By ${x(a.author)} · ${fd(a.date)}</div>
+    </div>`).join('');
+}
+
+function renderAdmissions(){
+  const g=document.getElementById('admGrid');
+  if(!g) return;
+  const list=arts.filter(a=>a.section==='Admissions').sort((a,b)=>b.id-a.id);
+  if(!list.length){
+    g.innerHTML=`<div class="empty-st">No admissions articles yet. Upload articles tagged "Admissions" to populate this page.</div>`;
+    return;
+  }
+  g.innerHTML=list.map(a=>`
+    <div class="card" onclick="openArtPage(${a.id})">
+      ${a.img?`<img src="${a.img}" alt="${x(a.title)}" onerror="this.style.display='none'">`:''}
+      <div class="h-card">${x(a.title)}</div>
+      <div class="blurb-sm" style="margin-top:6px">${x(a.blurb)}</div>
+      <div class="byline">By ${x(a.author)} · ${fd(a.date)}</div>
+    </div>`).join('');
+}
+
+// ── ARCHIVE ──
+function renderArchive(q){
+  const el=document.getElementById('archiveList');
+  const src=arts.length?arts:[
+    {id:0,title:'Sample archived article — upload articles to build your archive',section:'Business',author:'Harbus Staff',date:'1937-01-01T00:00:00.000Z',feat:'none'}
+  ];
+  const filtered=q?src.filter(a=>a.title.toLowerCase().includes(q.toLowerCase())||a.author.toLowerCase().includes(q.toLowerCase())):src;
+  if(!filtered.length){el.innerHTML=`<div style="font-family:'Inter',sans-serif;font-size:12px;color:var(--light);padding:20px 0">No results found.</div>`;return;}
+  // group by decade
+  const byDecade={};
+  filtered.forEach(a=>{
+    const yr=new Date(a.date).getFullYear();
+    const dec=Math.floor(yr/10)*10;
+    const k=`${dec}s`;
+    if(!byDecade[k])byDecade[k]=[];
+    byDecade[k].push(a);
+  });
+  const decades=Object.keys(byDecade).sort((a,b)=>b.localeCompare(a));
+  el.innerHTML=decades.map(d=>`
+    <div class="decade-group">
+      <div class="decade-label">${d}</div>
+      ${byDecade[d].sort((a,b)=>b.id-a.id).map(a=>`
+        <div class="archive-row">
+          <span class="archive-title" onclick="openArt(${a.id})">${x(a.title)}</span>
+          <span class="archive-meta">${x(a.section)} · ${fd(a.date)}</span>
+        </div>`).join('')}
+    </div>`).join('');
+}
+function filterArchive(q){renderArchive(q);}
+
+// ── ARTICLE VIEW ──
+function openArt(id){
+  const a=arts.find(z=>z.id===id);if(!a)return;
+  document.getElementById('av-sec').textContent=a.section;
+  document.getElementById('av-title').textContent=a.title;
+  document.getElementById('av-blurb').textContent=a.blurb;
+  document.getElementById('av-byline').textContent=`By ${a.author}${a.at?' · '+a.at:''} · ${fd(a.date)}`;
+  const im=document.getElementById('av-img');
+  im.src=a.img||'';im.style.display=a.img?'block':'none';
+  document.getElementById('av-cap').textContent=a.cap||'';
+  document.getElementById('av-body').innerHTML=a.body.split('\n').filter(p=>p.trim()).map(p=>`<p>${p}</p>`).join('');
+  document.getElementById('artView').classList.add('on');
+  document.getElementById('hpView').classList.add('off');
+  showPage('pg-home');
+  window.scrollTo(0,0);
+}
+function openArtPage(id){
+  // open article from any page by switching to home then opening
+  openArt(id);
+}
+function closeArt(){
+  document.getElementById('artView').classList.remove('on');
+  document.getElementById('hpView').classList.remove('off');
+}
+
+// ── SECTION FILTER ──
+function filterSec(sec,el){
+  curSec=sec;
+  document.querySelectorAll('.nav-inner a').forEach(a=>a.classList.remove('active'));
+  el.classList.add('active');
+  if(sec==='Admissions'){showPage('pg-admissions');return;}
+  closeArt();renderGrid(sec);
+}
+
+// ── AUTH ──
+function openLogin(){document.getElementById('loginOv').classList.add('on')}
+function closeLogin(){document.getElementById('loginOv').classList.remove('on')}
+function doLogin(){
+  const u=document.getElementById('lu').value.trim(),p=document.getElementById('lp').value;
+  if(u===UNAME&&p===UPASS){
+    loggedIn=true;
+    document.getElementById('adminBar').classList.add('on');
+    document.getElementById('loginToggle').style.display='none';
+    closeLogin();renderAll();
+  } else {document.getElementById('lErr').style.display='block';}
+}
+function doLogout(){
+  loggedIn=false;
+  document.getElementById('adminBar').classList.remove('on');
+  document.getElementById('loginToggle').style.display='block';
+  renderAll();
+}
+
+// ── UPLOAD ──
+function openUpload(){if(loggedIn)document.getElementById('upOv').classList.add('on')}
+function closeUpload(){document.getElementById('upOv').classList.remove('on');resetForm();}
+function ovClick(e,id){if(e.target.id===id){id==='loginOv'?closeLogin():closeUpload();}}
+function setFeat(v){feat=v;['none','hero','side'].forEach(f=>document.getElementById('fp-'+f).classList.toggle('sel',f===v));}
+
+async function fetchDoc(){
+  const lnk=document.getElementById('gdUrl').value.trim();
+  if(!lnk){showSt('Paste a Google Doc link first.','bad');return;}
+  const m=lnk.match(/\/document\/d\/([a-zA-Z0-9_-]+)/);
+  if(!m){showSt('Not a valid Google Doc URL.','bad');return;}
+  const btn=document.getElementById('pullBtn');
+  btn.textContent='Pulling…';btn.disabled=true;showSt('','');
+  try{
+    const r=await fetch(`https://docs.google.com/document/d/${m[1]}/export?format=txt`);
+    if(!r.ok)throw new Error('Cannot access doc. Confirm sharing is "Anyone with the link."');
+    parseDoc(await r.text());
+    document.getElementById('metaSec').style.display='block';
+    showSt('Imported. Review fields then publish.','ok');
+  }catch(e){showSt(e.message,'bad');}
+  finally{btn.textContent='Pull from Google Doc';btn.disabled=false;}
+}
+function parseDoc(txt){
+  const lines=txt.split('\n').map(l=>l.trim()).filter(Boolean);
+  document.getElementById('uT').value=lines[0]||'';
+  const top=lines.slice(0,15).join('\n');
+  const ex=p=>{const m=top.match(p);return m?m[1].trim():'';};
+  document.getElementById('uA').value=ex(/(?:Author|By)[:\s]+(.+)/i);
+  document.getElementById('uB').value=ex(/(?:Blurb|Dek|Summary)[:\s]+(.+)/i);
+  document.getElementById('uS').value=ex(/(?:Section|Category)[:\s]+(.+)/i);
+  document.getElementById('uI').value=ex(/(?:Image|Photo)[:\s]+(https?:\/\/\S+)/i);
+  document.getElementById('uC').value=ex(/(?:Caption|Credit)[:\s]+(.+)/i);
+  const mp=/^(Author|By|Blurb|Dek|Summary|Section|Category|Image|Photo|Caption|Credit):/i;
+  document.getElementById('uBody').value=lines.slice(1).filter(l=>!mp.test(l)).join('\n\n');
+}
+function publish(){
+  const t=v('uT'),s=v('uS'),b=v('uB'),a=v('uA'),body=v('uBody');
+  if(!t||!s||!b||!a||!body){showSt('Fill in all required fields.','bad');return;}
+  if(feat==='hero') arts=arts.map(z=>z.feat==='hero'?{...z,feat:'none'}:z);
+  if(feat==='side'&&arts.filter(z=>z.feat==='side').length>=2){showSt('Already 2 secondary articles.','bad');return;}
+  arts.unshift({id:Date.now(),title:t,section:s,blurb:b,author:a,at:v('uAt'),img:v('uI'),cap:v('uC'),body,feat,date:new Date().toISOString()});
+  localStorage.setItem('harbus_v4',JSON.stringify(arts));
+  renderAll();renderAdmissions();renderArchive(document.getElementById('archSearch')?.value||'');
+  closeUpload();
+}
+function showSt(msg,type){
+  const el=document.getElementById('upSt');
+  el.textContent=msg;el.className='st-msg'+(type?' '+type:'');
+}
+function resetForm(){
+  ['gdUrl','uT','uB','uA','uAt','uI','uC','uBody'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('uS').value='';
+  document.getElementById('metaSec').style.display='none';
+  document.getElementById('upSt').className='st-msg';
+  setFeat('none');
+}
+function v(id){return(document.getElementById(id)||{}).value?.trim()||'';}
+function x(s){const d=document.createElement('div');d.textContent=s||'';return d.innerHTML;}
+function fd(iso){return new Date(iso).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});}
+</script>
+</body>
+</html>
